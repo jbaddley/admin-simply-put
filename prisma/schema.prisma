@@ -38,15 +38,32 @@ model Session {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model Organization {
+  id    String @id @default(uuid()) @db.Uuid
+  name  String
+  users User[]
+}
+
+model Role {
+  id     String  @id @default(uuid()) @db.Uuid
+  name   String
+  User   User?   @relation(fields: [userId], references: [id])
+  userId String? @db.Uuid
+}
+
 model User {
-  id            String    @id @default(uuid()) @db.Uuid
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  password      String?
-  image         String?
-  accounts      Account[]
-  sessions      Session[]
+  id             String        @id @default(uuid()) @db.Uuid
+  name           String?
+  email          String?       @unique
+  emailVerified  DateTime?
+  password       String?
+  image          String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  accounts       Account[]
+  sessions       Session[]
+  articles       Article[]
+  organizationId String?       @db.Uuid
+  roles          Role[]
 }
 
 model VerificationToken {
@@ -55,4 +72,106 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model Category {
+  id       String    @id @default(uuid()) @db.Uuid
+  title    String
+  slug     String
+  hostname String?   @default("simplyput.online")
+  article  Article[]
+}
+
+model Content {
+  id             String           @id @default(uuid()) @db.Uuid
+  conversion     Float            @default(0)
+  views          Int              @default(0)
+  content        String
+  lastConverted  DateTime?
+  lastSeen       DateTime?
+  seenByIP       String[]
+  ai             String?          @default("none")
+  articleContent ArticleContent[]
+}
+
+model Title {
+  id             String           @id @default(uuid()) @db.Uuid
+  conversion     Float            @default(0)
+  views          Int              @default(0)
+  title          String
+  lastConverted  DateTime?
+  lastSeen       DateTime?
+  seenByIP       String[]
+  ai             String?          @default("none")
+  articleContent ArticleContent[]
+}
+
+model Hero {
+  id             String           @id @default(uuid()) @db.Uuid
+  conversion     Float            @default(0)
+  views          Int              @default(0)
+  url            String
+  lastConverted  DateTime?
+  lastSeen       DateTime?
+  seenByIP       String[]
+  ai             String?          @default("none")
+  articleContent ArticleContent[]
+}
+
+model CallToAction {
+  id             String           @id @default(uuid()) @db.Uuid
+  conversion     Float            @default(0)
+  views          Int              @default(0)
+  text           String
+  type           String           @default("button")
+  lastConverted  DateTime?
+  lastSeen       DateTime?
+  seenByIP       String[]
+  ai             String?          @default("none")
+  articleContent ArticleContent[]
+}
+
+model ArticleType {
+  id            String    @id @default(uuid()) @db.Uuid
+  conversion    Float     @default(0)
+  views         Int       @default(0)
+  lastConverted DateTime?
+  lastSeen      DateTime?
+  seenByIP      String[]
+  type          String
+
+  articleContent ArticleContent[]
+}
+
+model ArticleContent {
+  id             String        @id @default(uuid()) @db.Uuid
+  usedIn         Article?      @relation(fields: [articleId], references: [id])
+  hero           Hero?         @relation(fields: [heroId], references: [id])
+  title          Title?        @relation(fields: [titleId], references: [id])
+  content        Content?      @relation(fields: [contentId], references: [id])
+  type           ArticleType?  @relation(fields: [articleTypeId], references: [id])
+  callToAction   CallToAction? @relation(fields: [callToActionId], references: [id])
+  conversion     Float         @default(0)
+  views          Int           @default(0)
+  lastConverted  DateTime?
+  seenByIP       String[]
+  articleId      String        @db.Uuid
+  heroId         String?       @db.Uuid
+  titleId        String?       @db.Uuid
+  contentId      String?       @db.Uuid
+  articleTypeId  String?       @db.Uuid
+  callToActionId String?       @db.Uuid
+}
+
+model Article {
+  id              String           @id @default(uuid()) @db.Uuid
+  hostname        String?          @default("simplyput.online")
+  slug            String
+  author          User             @relation(fields: [authorId], references: [id])
+  authorId        String           @db.Uuid
+  dateTime        DateTime
+  category        Category         @relation(fields: [categoryId], references: [id])
+  categoryId      String           @db.Uuid
+  callToActionUrl String?
+  articleContent  ArticleContent[]
 }
